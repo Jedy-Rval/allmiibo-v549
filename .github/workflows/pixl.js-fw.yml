@@ -1,0 +1,43 @@
+name: pixl.js-fw
+
+on:
+  push:
+    branches: [ "main", "master", "develop", "neo_v2" ]
+    tags:  ["*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        board: ["OLED"]
+    runs-on: ubuntu-latest
+    container: solosky/nrf52-sdk:latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Change Owner of Container Working Directory
+      run: chown root:root .
+    - name: build firmware
+      run: cd fw && make all RELEASE=1 APP_VERSION=549 BOARD=${{matrix.board}}
+    - name: copy artifact
+      run: |
+        mv fw/_build/bootloader.hex .
+        mv fw/_build/pixljs.hex .
+        mv fw/_build/pixljs_all.hex .
+        mv fw/_build/pixjs_ota_v*.zip pixjs_ota_v549.zip || true
+        mv fw/docs/fw_readme.txt .
+        mv fw/scripts/fw_update.bat .
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: 2.16.0_OLED_v549
+        path: |
+          bootloader.hex
+          pixljs.hex
+          pixljs_all.hex
+          pixjs_ota_v549.zip
+          fw_readme.txt
+          fw_update.bat
