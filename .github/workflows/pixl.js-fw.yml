@@ -15,11 +15,20 @@ jobs:
     container: solosky/nrf52-sdk:latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: 'true'
 
     - name: Change Owner of Container Working Directory
       run: chown root:root .
+
+    - name: Clone missing components
+      run: |
+        rm -rf fw/components/mlib fw/components/tlsf fw/components/cwalk fw/components/spiffs fw/components/littlefs fw/components/chameleon-ultra
+        git clone --depth 1 https://github.com/P-p-H-d/mlib.git fw/components/mlib
+        git clone --depth 1 https://github.com/mattconte/tlsf.git fw/components/tlsf
+        git clone --depth 1 https://github.com/likle/cwalk.git fw/components/cwalk
+        git clone --depth 1 https://github.com/pellepl/spiffs.git fw/components/spiffs
+        git clone --depth 1 https://github.com/littlefs-project/littlefs fw/components/littlefs
+        git clone --depth 1 https://github.com/solosky/ChameleonUltra.git fw/components/chameleon-ultra
+
     - name: build firmware
       run: cd fw && make all RELEASE=1 APP_VERSION=549 BOARD=${{matrix.board}}
     - name: copy artifact
